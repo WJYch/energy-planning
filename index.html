@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>能源运营规划 · 光储充方案</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0d1117;color:#e0e0e0;min-height:100vh}
+.container{max-width:1200px;margin:0 auto;padding:20px}
+.header{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid #21262d;margin-bottom:20px}
+.header h1{font-size:22px;font-weight:700;display:flex;align-items:center;gap:10px}
+.header h1 i{color:#4fc3f7}
+.badge{font-size:12px;background:#1a3a4a;color:#4fc3f7;padding:4px 10px;border-radius:12px}
+.badge.success{background:#1a3d1a;color:#3fb950}
+.tabs{display:flex;gap:4px;border-bottom:1px solid #21262d;margin-bottom:20px;overflow-x:auto}
+.tab{padding:10px 18px;cursor:pointer;color:#8b949e;border-bottom:2px solid transparent;font-size:14px;font-weight:500;white-space:nowrap;transition:all .2s}
+.tab:hover{color:#e0e0e0;background:#161b22}
+.tab.active{color:#4fc3f7;border-bottom-color:#4fc3f7}
+.tab i{margin-right:6px}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.card{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:20px;margin-bottom:16px}
+.card-title{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title i{color:#4fc3f7}
+.card-title .sub{font-size:12px;color:#8b949e;font-weight:400;margin-left:8px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
+@media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+.metric{padding:16px;background:#0d1117;border-radius:8px;text-align:center;position:relative}
+.metric .value{font-size:24px;font-weight:700}
+.metric .value.blue{color:#4fc3f7}
+.metric .value.green{color:#3fb950}
+.metric .value.orange{color:#d29922}
+.metric .value.purple{color:#a371f7}
+.metric .value.red{color:#f85149}
+.metric .label{font-size:12px;color:#8b949e;margin-top:4px}
+.metric .sub-label{font-size:11px;color:#8b949e;margin-top:2px}
+.chart-box{width:100%;height:320px}
+.chart-box-sm{width:100%;height:240px}
+.chart-box-lg{width:100%;height:380px}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:13px;color:#8b949e;margin-bottom:4px;font-weight:500}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:7px 10px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e0e0e0;font-size:13px}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-group select option{background:#161b22}
+.form-group input:focus,.form-group select:focus{outline:none;border-color:#4fc3f7}
+.form-group .hint{font-size:11px;color:#8b949e;margin-top:2px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 20px;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-primary{background:#4fc3f7;color:#0d1117}
+.btn-primary:hover{background:#39b0e4}
+.btn-success{background:#3fb950;color:#0d1117}
+.btn-success:hover{background:#33a34a}
+.btn-secondary{background:#21262d;color:#e0e0e0}
+.btn-secondary:hover{background:#30363d}
+.btn-warn{background:#d29922;color:#0d1117}
+.btn-sm{padding:5px 12px;font-size:11px}
+.callout{padding:12px 16px;border-radius:8px;margin:12px 0;font-size:13px;line-height:1.6;border-left:3px solid}
+.callout.info{background:#0d1b2a;border-color:#4fc3f7;color:#c9d1d9}
+.callout.success{background:#0d1f0d;border-color:#3fb950;color:#c9d1d9}
+.callout.warn{background:#1f1a0d;border-color:#d29922;color:#c9d1d9}
+.section-divider{border:none;border-top:1px solid #21262d;margin:20px 0}
+.result-box{padding:16px;background:#0d1117;border:1px solid #30363d;border-radius:8px;text-align:center;margin-top:8px}
+.result-box .big{font-size:32px;font-weight:700}
+.result-box .big.green{color:#3fb950}
+.result-box .big.gold{color:#d29922}
+.result-box .big.blue{color:#4fc3f7}
+table.data-table{width:100%;border-collapse:collapse;font-size:12px}
+table.data-table th{background:#21262d;color:#8b949e;font-weight:600;padding:6px 8px;text-align:center;font-size:11px}
+table.data-table td{padding:5px 8px;text-align:center;border-bottom:1px solid #1a1e24;font-size:11px}
+table.data-table tr:hover{background:#1a1e24}
+.scenario-card{padding:14px;background:#0d1117;border:1px solid #30363d;border-radius:8px;cursor:pointer;transition:all .2s}
+.scenario-card:hover{border-color:#4fc3f7}
+.scenario-card.active{border-color:#4fc3f7;background:rgba(79,195,247,0.06)}
+.scenario-card .name{font-weight:600;font-size:14px}
+.scenario-card .desc{font-size:12px;color:#8b949e;margin-top:4px}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#0d1117}
+::-webkit-scrollbar-thumb{background:#30363d;border-radius:3px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1><i class="fas fa-solar-panel"></i> 能源运营规划 <span class="badge">光储充方案</span></h1>
+  <div><span class="badge success"><i class="fas fa-chart-line"></i> 多情景模拟</span></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="data"><i class="fas fa-database"></i> 数据录入</div>
+  <div class="tab" data-tab="params"><i class="fas fa-sliders-h"></i> 参数配置</div>
+  <div class="tab" data-tab="sim"><i class="fas fa-chart-line"></i> 负荷模拟</div>
+  <div class="tab" data-tab="plan"><i class="fas fa-lightbulb"></i> 优化方案</div>
+</div>
+
+<!-- TAB 1: 数据录入 -->
+<div id="tab-data" class="tab-content active">
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><i class="fas fa-file-invoice"></i> 电费联单导入 <span class="sub">支持 12 个月历史数据</span></div>
+      <div class="form-group">
+        <label>导入方式</label>
+        <select id="importMode"><option value="demo">使用示例数据</option><option value="manual">手动输入年度数据</option></select>
+      </div>
+      <div id="manualInput" style="display:none">
+        <div class="form-row-3">
+          <div class="form-group"><label>合约容量 (kVA)</label><input type="number" id="contractCap" value="2000"></div>
+          <div class="form-group"><label>年总用电量 (万kWh)</label><input type="number" id="annualKwh" value="800"></div>
+          <div class="form-group"><label>最大需量 (kW)</label><input type="number" id="peakDemand" value="1800"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="loadDemoData()"><i class="fas fa-play"></i> 加载示例数据</button>
+      <div id="billSummary" style="margin-top:12px;display:none">
+        <div class="grid-4">
+          <div class="metric"><div class="value blue" id="bsAnnual">--</div><div class="label">年用电 (万kWh)</div></div>
+          <div class="metric"><div class="value orange" id="bsPeak">--</div><div class="label">最大需量 (kW)</div></div>
+          <div class="metric"><div class="value green" id="bsAvgPrice">--</div><div class="label">平均电价 (元/kWh)</div></div>
+          <div class="metric"><div class="value purple" id="bsBill">--</div><div class="label">年电费 (万元)</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-chart-area"></i> 基础负荷曲线 (24h)</div>
+      <div class="chart-box-sm" id="baseLoadChart"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="fas fa-table"></i> 12 个月用电明细</div>
+    <div class="data-table-wrap" style="max-height:250px;overflow-y:auto"><table class="data-table" id="monthlyTable"></table></div>
+  </div>
+</div>
+
+<!-- TAB 2: 参数配置 -->
+<div id="tab-params" class="tab-content">
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title"><i class="fas fa-industry"></i> 工厂排产</div>
+      <div class="form-group"><label>班制</label><select id="shiftType"><option value="single">单班制 (8h)</option><option value="double" selected>两班制 (16h)</option><option value="three">三班制 (24h)</option></select></div>
+      <div class="form-row"><div class="form-group"><label>年生产天数</label><input type="number" id="workDays" value="300"></div><div class="form-group"><label>日生产小时</label><input type="number" id="workHours" value="16"></div></div>
+      <div class="form-group"><label>节假日停工天数</label><input type="number" id="holidayDays" value="15"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-microchip"></i> 高耗能设备</div>
+      <div class="form-group"><label>主要设备</label><select id="equipType"><option value="molding">注塑机</option><option value="furnace">工业炉</option><option value="compressor">空压机</option><option value="hvac">中央空调</option><option value="custom">自定义</option></select></div>
+      <div class="form-row"><div class="form-group"><label>总装机 (kW)</label><input type="number" id="equipPower" value="800"></div><div class="form-group"><label>运行率 (%)</label><input type="number" id="equipRate" value="75"></div></div>
+      <div class="form-group"><label>可调比例 (%)</label><input type="number" id="adjustableRatio" value="30"><div class="hint">可参与需求响应的负荷比例</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-globe"></i> 省域政策</div>
+      <div class="form-group"><label>所在省份</label><select id="province"><option value="jiangsu" selected>江苏</option><option value="zhejiang">浙江</option><option value="shanghai">上海</option><option value="anhui">安徽</option><option value="shandong">山东</option><option value="guangdong">广东</option></select></div>
+      <div class="form-group"><label>用电类别</label><select id="elecCategory"><option value="largeIndustrial" selected>大工业用电</option><option value="generalIndustrial">一般工商业</option></select></div>
+      <div class="form-group"><label>电压等级</label><select id="voltage"><option value="10kv" selected>10kV</option><option value="35kv">35kV</option><option value="110kv">110kV</option></select></div>
+      <div id="priceDisplay" style="background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:10px;margin-top:8px;font-size:12px;line-height:1.8"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="fas fa-cogs"></i> 情景配置</div>
+    <div class="grid-3">
+      <div class="scenario-card active" id="scBase" onclick="selectScenario('base')">
+        <div class="name">🔵 基准情景</div>
+        <div class="desc">当前运行模式，未做任何优化</div>
+      </div>
+      <div class="scenario-card" id="scSolar" onclick="selectScenario('solar')">
+        <div class="name">🟢 光伏接入</div>
+        <div class="desc">屋顶光伏 + 基础储能</div>
+      </div>
+      <div class="scenario-card" id="scFull" onclick="selectScenario('full')">
+        <div class="name">🟣 综合优化</div>
+        <div class="desc">光储充 + 柔调 + 需求响应</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <button class="btn btn-success" onclick="runSimulation()"><i class="fas fa-calculator"></i> 执行负荷模拟</button>
+      <span id="simStatus" style="margin-left:12px;font-size:13px;color:#8b949e"></span>
+    </div>
+  </div>
+</div>
+
+<!-- TAB 3: 负荷模拟 -->
+<div id="tab-sim" class="tab-content">
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><i class="fas fa-chart-line"></i> 典型日负荷曲线对比</div>
+      <div class="chart-box" id="simChart"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-chart-bar"></i> 月度用电分布</div>
+      <div class="chart-box" id="monthSimChart"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="fas fa-chart-area"></i> 全年负荷热力图</div>
+    <div class="chart-box-lg" id="heatmapChart"></div>
+  </div>
+  <div class="grid-4" id="simMetrics"></div>
+</div>
+
+<!-- TAB 4: 优化方案 -->
+<div id="tab-plan" class="tab-content">
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title"><i class="fas fa-solar-panel" style="color: #d29922"></i> 光伏配置建议</div>
+      <div class="form-row">
+        <div class="form-group"><label>可安装面积 (m²)</label><input type="number" id="pvArea" value="5000"></div>
+        <div class="form-group"><label>建议装机 (kWp)</label><input type="number" id="pvSize" value="500" readonly></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>单位造价 (元/Wp)</label><input type="number" id="pvCost" value="3.2" step="0.1"></div>
+        <div class="form-group"><label>年利用小时 (h)</label><input type="number" id="pvHours" value="1050"></div>
+      </div>
+      <div id="pvResult" style="font-size:13px;line-height:2;margin-top:8px"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="fas fa-battery-full" style="color: #3fb950"></i> 储能配置建议</div>
+      <div class="form-row">
+        <div class="form-group"><label>建议容量 (kWh)</label><input type="number" id="battSize" value="1000"></div>
+        <div class="form-group"><label>建议功率 (kW)</label><input type="number" id="battPower" value="500"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>单位造价 (元/kWh)</label><input type="number" id="battCost" value="900" step="10"></div>
+        <div class="form-group"><label>循环寿命</label><input type="number" id="battCycles" value="6000"></div>
+      </div>
+      <div id="battResult" style="font-size:13px;line-height:2;margin-top:8px"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="fas fa-chart-bar"></i> 充放电策略 (BMS/EMS)</div>
+    <div class="chart-box" id="bmsChart"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="fas fa-credit-card"></i> 投资收益测算 (ROI)</div>
+    <div class="grid-4" id="roiMetrics"></div>
+    <div class="chart-box" id="roiChart" style="margin-top:12px"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><i class="fas fa-file-alt"></i> 综合能源优化方案报告</div>
+    <div id="reportContent" style="font-size:13px;line-height:2;color:#c9d1d9"></div>
+  </div>
+</div>
+</div>
+
+<script>
+// ============================================================
+// Energy Planning Engine
+// ============================================================
+let selectedScenario = 'base';
+let monthlyData = [];
+let baseLoadCurve = [];
+let simResults = null;
+
+// Province TOU prices database
+const PROVINCE_DATA = {
+  jiangsu: {
+    name: '江苏', voltage: {'10kv': '1-10kV', '35kv': '35-110kV', '110kv': '110kV'},
+    prices: {
+      'largeIndustrial': {
+        '1-10kV': {peak: 1.0253, flat: 0.6152, valley: 0.3087, spike: 1.1253},
+        '35-110kV': {peak: 1.0003, flat: 0.6002, valley: 0.3012, spike: 1.0983},
+        '110kV': {peak: 0.9753, flat: 0.5852, valley: 0.2937, spike: 1.0713}
+      },
+      'generalIndustrial': {
+        '1-10kV': {peak: 0.8683, flat: 0.5210, valley: 0.2615, spike: 0.9533}
+      }
+    },
+    periods: {
+      summer: {peak: [[8,12],[17,21]], flat: [[12,17],[21,24]], valley: [[0,8]], spike: [[10,11],[14,15]]},
+      other: {peak: [[8,12],[17,21]], flat: [[12,17],[21,24]], valley: [[0,8]], spike: []}
+    },
+    subsidy: {pv: 0.03, storage: 0.08, demandResponse: 0.5}
+  },
+  zhejiang: {name:'浙江', voltage:{'10kv':'1-10kV','35kv':'35-110kV','110kv':'110kV'},
+    prices:{'largeIndustrial':{'1-10kV':{peak:0.9683,flat:0.5810,valley:0.2905,spike:1.0633},'35-110kV':{peak:0.9433,flat:0.5660,valley:0.2830,spike:1.0363},'110kV':{peak:0.9183,flat:0.5510,valley:0.2755,spike:1.0093}},'generalIndustrial':{'1-10kV':{peak:0.8683,flat:0.5210,valley:0.2615,spike:0.9533}}},
+    periods:{summer:{peak:[[8,11],[13,17],[19,21]],flat:[[11,13],[17,19],[21,24]],valley:[[0,8]],spike:[[7,8]]},other:{peak:[[8,11],[13,17],[19,21]],flat:[[11,13],[17,19],[21,24]],valley:[[0,8]],spike:[]}},
+    subsidy:{pv:0.02,storage:0.10,demandResponse:0.6}},
+  shanghai:{name:'上海',voltage:{'10kv':'10kV','35kv':'35kV','110kv':'110kV'},
+    prices:{'largeIndustrial':{'10kV':{peak:1.0033,flat:0.6020,valley:0.3010,spike:1.1033},'35kV':{peak:0.9783,flat:0.5870,valley:0.2935,spike:1.0763},'110kV':{peak:0.9533,flat:0.5720,valley:0.2860,spike:1.0493}},'generalIndustrial':{'10kV':{peak:0.8883,flat:0.5330,valley:0.2665,spike:0.9733}}},
+    periods:{summer:{peak:[[8,15],[18,21]],flat:[[6,8],[15,18],[21,22]],valley:[[22,6]],spike:[]},other:{peak:[[8,11],[13,17],[18,21]],flat:[[6,8],[11,13],[17,18],[21,22]],valley:[[22,6]],spike:[]}},
+    subsidy:{pv:0.05,storage:0.12,demandResponse:0.8}},
+  anhui:{name:'安徽',voltage:{'10kv':'1-10kV','35kv':'35-110kV','110kv':'110kV'},
+    prices:{'largeIndustrial':{'1-10kV':{peak:0.9273,flat:0.5564,valley:0.2782,spike:1.0183},'35-110kV':{peak:0.9023,flat:0.5414,valley:0.2707,spike:0.9913},'110kV':{peak:0.8773,flat:0.5264,valley:0.2632,spike:0.9643}},'generalIndustrial':{'1-10kV':{peak:0.8273,flat:0.4964,valley:0.2482,spike:0.9083}}},
+    periods:{summer:{peak:[[9,12],[17,22]],flat:[[8,9],[12,17],[22,23]],valley:[[23,8]],spike:[]},other:{peak:[[9,12],[17,22]],flat:[[8,9],[12,17],[22,23]],valley:[[23,8]],spike:[]}},
+    subsidy:{pv:0.02,storage:0.05,demandResponse:0.4}},
+  shandong:{name:'山东',voltage:{'10kv':'1-10kV','35kv':'35-110kV','110kv':'110kV'},
+    prices:{'largeIndustrial':{'1-10kV':{peak:0.8903,flat:0.5342,valley:0.2671,spike:0.9783},'35-110kV':{peak:0.8653,flat:0.5192,valley:0.2596,spike:0.9513},'110kV':{peak:0.8403,flat:0.5042,valley:0.2521,spike:0.9243}},'generalIndustrial':{'1-10kV':{peak:0.7903,flat:0.4742,valley:0.2371,spike:0.8683}}},
+    periods:{summer:{peak:[[10,12],[14,17]],flat:[[8,10],[12,14],[17,20]],valley:[[20,8]],spike:[[12,14]]},other:{peak:[[10,12],[14,17]],flat:[[8,10],[12,14],[17,20]],valley:[[20,8]],spike:[]}},
+    subsidy:{pv:0.03,storage:0.08,demandResponse:0.5}},
+  guangdong:{name:'广东',voltage:{'10kv':'1-10kV','35kv':'35-110kV','110kv':'110kV'},
+    prices:{'largeIndustrial':{'1-10kV':{peak:0.9283,flat:0.5570,valley:0.2785,spike:1.0203},'35-110kV':{peak:0.9033,flat:0.5420,valley:0.2710,spike:0.9933},'110kV':{peak:0.8783,flat:0.5270,valley:0.2635,spike:0.9663}},'generalIndustrial':{'1-10kV':{peak:0.8283,flat:0.4970,valley:0.2485,spike:0.9103}}},
+    periods:{summer:{peak:[[10,12],[14,19]],flat:[[8,10],[12,14],[19,22]],valley:[[22,8]],spike:[[7,8]]},other:{peak:[[10,12],[14,19]],flat:[[8,10],[12,14],[19,22]],valley:[[22,8]],spike:[]}},
+    subsidy:{pv:0.03,storage:0.10,demandResponse:0.7}}
+};
+
+// ---- Demo Data ----
+function loadDemoData() {
+  monthlyData = [];
+  baseLoadCurve = [];
+  const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const seasonalFactor = [0.88,0.85,0.92,0.98,1.05,1.12,1.18,1.15,1.08,0.95,0.90,0.86];
+  const baseMonthly = 800/12; // 万kWh per month avg
+  let sum = 0;
+  for (let m = 0; m < 12; m++) {
+    const kwh = Math.round(baseMonthly * seasonalFactor[m] * (0.9 + Math.random() * 0.2) * 10) / 10;
+    const peak = Math.round((1200 + seasonalFactor[m] * 500 + (Math.random() - 0.5) * 200) * 10) / 10;
+    const valley = kwh * (0.25 + Math.random() * 0.1);
+    const flat = kwh - valley;
+    const demand = Math.round(peak * 0.85);
+    sum += kwh;
+    monthlyData.push({month: months[m], kwh, peak: demand, flat, valley, bill: 0});
+  }
+  // Recalc bills with TOU
+  updateBills();
+  updateBaseLoadCurve();
+  updateMonthlyTable();
+  updatePriceDisplay();
+  updateBaseLoadChart();
+  document.getElementById('billSummary').style.display = 'block';
+  document.getElementById('bsAnnual').textContent = sum.toFixed(0);
+  document.getElementById('bsPeak').textContent = Math.max(...monthlyData.map(d => d.peak));
+  document.getElementById('bsAvgPrice').textContent = (monthlyData.reduce((s,d) => s + d.bill, 0) / sum).toFixed(3);
+  document.getElementById('bsBill').textContent = monthlyData.reduce((s,d) => s + d.bill, 0).toFixed(0);
+}
+
+function updateBills() {
+  const province = document.getElementById('province').value;
+  const pd = PROVINCE_DATA[province];
+  const cat = document.getElementById('elecCategory').value;
+  const voltKey = pd.voltage[document.getElementById('voltage').value];
+  const pr = pd.prices[cat][voltKey];
+  monthlyData.forEach(d => {
+    // Assume 60% flat, 25% peak, 15% valley distribution
+    d.bill = Math.round((d.kwh * 0.6 * pr.flat + d.kwh * 0.25 * pr.peak + d.kwh * 0.15 * pr.valley) * 100) / 100;
+  });
+}
+
+function updateBaseLoadCurve() {
+  // Generate 96-point (15-min) typical load curve from monthly data
+  const avgKwh = monthlyData.reduce((s,d) => s + d.kwh, 0) / 12;
+  const avgDemand = monthlyData.reduce((s,d) => s + d.peak, 0) / 12;
+  baseLoadCurve = [];
+  const shift = document.getElementById('shiftType').value;
+  const workHr = shift === 'single' ? 8 : shift === 'double' ? 16 : 24;
+  for (let i = 0; i < 96; i++) {
+    const h = i / 4;
+    let factor;
+    if (workHr === 24) {
+      factor = 0.75 + Math.sin(h * 0.4 + 1.5) * 0.2 + (h >= 10 && h <= 12 ? 0.15 : 0) + (h >= 14 && h <= 17 ? 0.1 : 0);
+    } else if (workHr === 16) {
+      if (h < 7 || h >= 23) factor = 0.35 + Math.random() * 0.05;
+      else if (h < 8) factor = 0.5 + (h - 7) * 0.25;
+      else if (h < 12) factor = 0.85 + Math.sin(h * 0.6) * 0.1;
+      else if (h < 13) factor = 0.7;
+      else if (h < 18) factor = 0.9 + Math.sin((h - 13) * 0.4) * 0.08;
+      else if (h < 22) factor = 0.75 - (h - 18) * 0.08;
+      else factor = 0.45 - (h - 22) * 0.1;
+    } else {
+      if (h < 7) factor = 0.2;
+      else if (h < 8) factor = 0.3;
+      else if (h < 12) factor = 0.85 + Math.sin(h * 0.8) * 0.1;
+      else if (h < 13) factor = 0.6;
+      else if (h < 17) factor = 0.8 + Math.sin((h - 13) * 0.5) * 0.1;
+      else factor = 0.6 - (h - 17) * 0.08;
+    }
+    // Add noise + equipment load
+    const equipPow = parseFloat(document.getElementById('equipPower').value) || 0;
+    const equipRate = parseFloat(document.getElementById('equipRate').value) || 0;
+    const equipLoad = equipPow * equipRate / 100 * factor;
+    const load = Math.round((avgDemand * factor + equipLoad * 0.3 + (Math.sin(i * 1.7) * 0.02 + Math.cos(i * 0.5) * 0.015) * avgDemand) * 10) / 10;
+    baseLoadCurve.push(Math.max(10, load));
+  }
+}
+
+function updateBaseLoadChart() {
+  const chart = echarts.init(document.getElementById('baseLoadChart'));
+  const labels = Array.from({length: 96}, (_, i) => {
+    const h = Math.floor(i / 4); const m = (i % 4) * 15;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  });
+  chart.setOption({
+    tooltip: {trigger: 'axis'},
+    grid: {top: 10, right: 20, bottom: 30, left: 50},
+    xAxis: {type: 'category', data: labels.filter((_,i) => i % 12 === 0), axisLabel: {color:'#8b949e', fontSize: 9}},
+    yAxis: {type: 'value', name: 'kW', nameTextStyle: {color:'#8b949e', fontSize: 10}, axisLabel: {color:'#8b949e', fontSize: 10}},
+    series: [{type: 'line', smooth: true, symbol: 'none', lineStyle: {color:'#4fc3f7', width: 2},
+      areaStyle: {color: {type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: 'rgba(79,195,247,0.25)'}, {offset: 1, color: 'rgba(79,195,247,0)'}]}},
+      data: baseLoadCurve.map(v => Math.round(v))}],
+    backgroundColor: 'transparent'
+  });
+}
+
+function updateMonthlyTable() {
+  const total = monthlyData.reduce((s,d) => s + d.kwh, 0);
+  let html = '<thead><tr><th>月份</th><th>用电 (万kWh)</th><th>尖峰 (%)</th><th>平段 (%)</th><th>低谷 (%)</th><th>最大需量 (kW)</th><th>电费 (万元)</th></tr></thead><tbody>';
+  monthlyData.forEach((d, i) => {
+    const pct = (d.kwh / total * 100).toFixed(1);
+    html += `<tr><td>${d.month}</td><td style="font-weight:600">${d.kwh.toFixed(0)}</td><td style="color:#f85149">${(d.kwh * 0.25 / d.kwh * 100).toFixed(0)}%</td><td>${(d.kwh * 0.6 / d.kwh * 100).toFixed(0)}%</td><td style="color:#3fb950">${(d.kwh * 0.15 / d.kwh * 100).toFixed(0)}%</td><td>${d.peak}</td><td style="color:#d29922">${d.bill.toFixed(1)}</td></tr>`;
+  });
+  html += `<tr style="font-weight:600;border-top:2px solid #30363d"><td>合计</td><td>${total.toFixed(0)}</td><td colspan="2"></td><td></td><td>${Math.max(...monthlyData.map(d=>d.peak))}</td><td style="color:#d29922">${monthlyData.reduce((s,d) => s + d.bill, 0).toFixed(1)}</td></tr></tbody>`;
+  document.getElementById('monthlyTable').innerHTML = html;
+}
+
+function updatePriceDisplay() {
+  const prov = document.getElementById('province').value;
+  const pd = PROVINCE_DATA[prov];
+  const cat = document.getElementById('elecCategory').value;
+  const voltKey = pd.voltage[document.getElementById('voltage').value];
+  const pr = pd.prices[cat][voltKey];
+  document.getElementById('priceDisplay').innerHTML = `
+    <strong>${pd.name} ${cat === 'largeIndustrial' ? '大工业' : '一般工商业'} ${voltKey}</strong><br>
+    尖峰: <span style="color:#f85149">${pr.spike} 元/kWh</span> &nbsp;
+    高峰: <span style="color:#d29922">${pr.peak} 元/kWh</span><br>
+    平段: <span style="color:#8b949e">${pr.flat} 元/kWh</span> &nbsp;
+    低谷: <span style="color:#3fb950">${pr.valley} 元/kWh</span><br>
+    光伏补贴: ${pd.subsidy.pv} 元/kWh &nbsp; 储能补贴: ${pd.subsidy.storage} 元/kWh
+  `;
+  updateBills();
+}
+
+// ---- Scenario Selection ----
+function selectScenario(s) {
+  selectedScenario = s;
+  document.querySelectorAll('.scenario-card').forEach(el => el.classList.remove('active'));
+  document.getElementById(`sc${s.charAt(0).toUpperCase() + s.slice(1)}`).classList.add('active');
+}
+
+// ---- Simulation ----
+function runSimulation() {
+  document.getElementById('simStatus').textContent = '计算中...';
+  setTimeout(() => {
+    simulateAll();
+    document.getElementById('simStatus').textContent = '✅ 模拟完成';
+    document.querySelector('[data-tab="sim"]').click();
+    setTimeout(() => document.getElementById('simChart').scrollIntoView({behavior:'smooth'}), 100);
+  }, 200);
+}
+
+function simulateAll() {
+  const prov = document.getElementById('province').value;
+  const pd = PROVINCE_DATA[prov];
+  const cat = document.getElementById('elecCategory').value;
+  const voltKey = pd.voltage[document.getElementById('voltage').value];
+  const pr = pd.prices[cat][voltKey];
+  const shift = document.getElementById('shiftType').value;
+  const workDays = parseInt(document.getElementById('workDays').value) || 300;
+  const holidayDays = parseInt(document.getElementById('holidayDays').value) || 15;
+  const equipPow = parseFloat(document.getElementById('equipPower').value) || 0;
+  const equipRate = parseFloat(document.getElementById('equipRate').value) || 0;
+  const adjRatio = parseFloat(document.getElementById('adjustableRatio').value) || 0;
+
+  // Generate 3 scenarios
+  const baseLoad = generateDailyLoad(shift, equipPow, equipRate);
+  const allMonths = Array.from({length: 12}, (_, m) => {
+    const monthFactor = [0.88,0.85,0.92,0.98,1.05,1.12,1.18,1.15,1.08,0.95,0.90,0.86][m];
+    const daysInMonth = [31,28,31,30,31,30,31,31,30,31,30,31][m];
+    const workDaysMonth = Math.round(daysInMonth * workDays / 365);
+    return baseLoad.map(v => v * monthFactor * workDaysMonth / 30);
+  });
+
+  // Solar scenario: add PV generation
+  const solarLoad = JSON.parse(JSON.stringify(allMonths));
+  const pvGen = generatePVCurve();
+  for (let m = 0; m < 12; m++) {
+    const monthFactor = [0.75,0.80,0.95,1.05,1.12,1.10,1.08,1.05,0.98,0.90,0.80,0.72][m];
+    for (let i = 0; i < 96; i++) {
+      solarLoad[m][i] = Math.max(10, allMonths[m][i] - pvGen[i] * monthFactor * 5);
+    }
+  }
+
+  // Full scenario: Solar + Storage + DR
+  const fullLoad = JSON.parse(JSON.stringify(solarLoad));
+  const battCap = 1000; // kWh
+  const battPow = 500; // kW
+  for (let m = 0; m < 12; m++) {
+    fullLoad[m] = applyStorageStrategy(fullLoad[m], battCap, battPow, pr);
+  }
+
+  simResults = { base: allMonths, solar: solarLoad, full: fullLoad, pvGen, pr, pd };
+  displaySimResults();
+  updatePlanTab();
+}
+
+function generateDailyLoad(shift, equipPow, equipRate) {
+  const avgDemand = monthlyData.reduce((s,d) => s + d.peak, 0) / 12;
+  const load = [];
+  const workHr = shift === 'single' ? 8 : shift === 'double' ? 16 : 24;
+  for (let i = 0; i < 96; i++) {
+    const h = i / 4;
+    let factor;
+    if (workHr === 24) factor = 0.75 + Math.sin(h * 0.4 + 1.5) * 0.2;
+    else if (workHr === 16) {
+      if (h < 7 || h >= 23) factor = 0.35;
+      else if (h < 8) factor = 0.5 + (h - 7) * 0.25;
+      else if (h < 12) factor = 0.85 + Math.sin(h * 0.6) * 0.1;
+      else if (h < 13) factor = 0.7;
+      else if (h < 18) factor = 0.9 + Math.sin((h - 13) * 0.4) * 0.08;
+      else if (h < 22) factor = 0.75 - (h - 18) * 0.08;
+      else factor = 0.45 - (h - 22) * 0.1;
+    } else {
+      if (h < 7) factor = 0.2;
+      else if (h < 8) factor = 0.3;
+      else if (h < 12) factor = 0.85 + Math.sin(h * 0.8) * 0.1;
+      else if (h < 13) factor = 0.6;
+      else if (h < 17) factor = 0.8 + Math.sin((h - 13) * 0.5) * 0.1;
+      else factor = 0.6 - (h - 17) * 0.08;
+    }
+    const eLoad = equipPow * equipRate / 100 * factor * 0.3;
+    load.push(Math.round((avgDemand * factor + eLoad + (Math.sin(i * 1.7) * 0.02) * avgDemand) * 10) / 10);
+  }
+  return load;
+}
+
+function generatePVCurve() {
+  const curve = [];
+  for (let i = 0; i < 96; i++) {
+    const h = i / 4;
+    if (h < 5 || h >= 19) curve.push(0);
+    else {
+      const v = Math.sin((h - 5) / 14 * Math.PI);
+      curve.push(Math.max(0, v * 1000)); // scaled for 500kWp
+    }
+  }
+  return curve;
+}
+
+function applyStorageStrategy(monthLoad, cap, pow, pr) {
+  const soc = []; let current = cap * 0.2;
+  const result = [...monthLoad];
+  for (let i = 0; i < 96; i++) {
+    const h = i / 4;
+    let action = 0;
+    // Valley charge (0:00-8:00)
+    if (h >= 0 && h < 8 && current < cap * 0.9) {
+      action = -Math.min(pow, (cap * 0.9 - current) / 0.9);
+      current -= action;
+    }
+    // Peak discharge (8:00-12:00, 17:00-21:00)
+    else if (((h >= 8 && h < 12) || (h >= 17 && h < 21)) && current > cap * 0.1) {
+      action = Math.min(pow, (current - cap * 0.1) * 0.9);
+      current -= action * 1.1; // round-trip loss
+    }
+    // Flat - hold
+    result[i] = Math.max(10, result[i] + action); // positive = discharge, negative = charge
+  }
+  return result;
+}
+
+function displaySimResults() {
+  const { base, solar, full } = simResults;
+  const dayIdx = 5; // typical summer day
+  const labels = Array.from({length: 96}, (_, i) => {
+    const h = Math.floor(i / 4); const m = (i % 4) * 15;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  });
+
+  // Daily load comparison
+  const chart = echarts.init(document.getElementById('simChart'));
+  const baseDay = base[dayIdx] || base[0];
+  const solarDay = solar[dayIdx] || solar[0];
+  const fullDay = full[dayIdx] || full[0];
+  chart.setOption({
+    tooltip: {trigger: 'axis'},
+    legend: {data: ['基准情景','光伏接入','综合优化'], textStyle: {color:'#8b949e', fontSize: 11}, bottom: 0},
+    grid: {top: 10, right: 10, bottom: 40, left: 50},
+    xAxis: {type: 'category', data: labels.filter((_,i) => i % 6 === 0), axisLabel: {color:'#8b949e', fontSize: 9}},
+    yAxis: {type: 'value', name: 'kW', nameTextStyle: {color:'#8b949e', fontSize: 10}, axisLabel: {color:'#8b949e', fontSize: 10}},
+    series: [
+      {name: '基准情景', type: 'line', smooth: true, symbol: 'none', lineStyle: {color:'#f85149', width: 2}, data: baseDay.map(v => Math.round(v))},
+      {name: '光伏接入', type: 'line', smooth: true, symbol: 'none', lineStyle: {color:'#d29922', width: 2}, data: solarDay.map(v => Math.round(v))},
+      {name: '综合优化', type: 'line', smooth: true, symbol: 'none', lineStyle: {color:'#3fb950', width: 2}, data: fullDay.map(v => Math.round(v))}
+    ],
+    backgroundColor: 'transparent'
+  });
+
+  // Monthly comparison
+  const mChart = echarts.init(document.getElementById('monthSimChart'));
+  const monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const baseTotal = base.map(m => Math.round(m.reduce((a,b) => a + b, 0) / 10000 * 10) / 10);
+  const solarTotal = solar.map(m => Math.round(m.reduce((a,b) => a + b, 0) / 10000 * 10) / 10);
+  const fullTotal = full.map(m => Math.round(m.reduce((a,b) => a + b, 0) / 10000 * 10) / 10);
+  mChart.setOption({
+    tooltip: {trigger: 'axis'},
+    legend: {data: ['基准','光伏','综合'], textStyle: {color:'#8b949e', fontSize: 11}, bottom: 0},
+    grid: {top: 10, right: 10, bottom: 40, left: 50},
+    xAxis: {type: 'category', data: monthNames, axisLabel: {color:'#8b949e'}},
+    yAxis: {type: 'value', name: '万kWh', nameTextStyle: {color:'#8b949e'}, axisLabel: {color:'#8b949e'}},
+    series: [
+      {name: '基准', type: 'bar', barWidth: '22%', data: baseTotal.map(v => ({value: v, itemStyle: {color: '#f85149'}}))},
+      {name: '光伏', type: 'bar', barWidth: '22%', data: solarTotal.map(v => ({value: v, itemStyle: {color: '#d29922'}}))},
+      {name: '综合', type: 'bar', barWidth: '22%', data: fullTotal.map(v => ({value: v, itemStyle: {color: '#3fb950'}}))}
+    ],
+    backgroundColor: 'transparent'
+  });
+
+  // Metrics
+  const baseAnnual = base.reduce((s, m) => s + m.reduce((a,b) => a + b, 0), 0) / 10000;
+  const solarAnnual = solar.reduce((s, m) => s + m.reduce((a,b) => a + b, 0), 0) / 10000;
+  const fullAnnual = full.reduce((s, m) => s + m.reduce((a,b) => a + b, 0), 0) / 10000;
+  const baseBill = baseAnnual * 10000 * pr.flat;
+  const solarBill = solarAnnual * 10000 * pr.flat;
+  const fullBill = fullAnnual * 10000 * pr.flat;
+
+  document.getElementById('simMetrics').innerHTML = `
+    <div class="metric"><div class="value blue">${baseAnnual.toFixed(0)}</div><div class="label">基准年用电 (万kWh)</div><div class="sub-label">电费 ${baseBill.toFixed(0)} 万元</div></div>
+    <div class="metric"><div class="value orange">${solarAnnual.toFixed(0)}</div><div class="label">光伏情景 (万kWh)</div><div class="sub-label" style="color:#3fb950">省电 ${(baseAnnual - solarAnnual).toFixed(1)} 万kWh</div></div>
+    <div class="metric"><div class="value green">${fullAnnual.toFixed(0)}</div><div class="label">综合优化 (万kWh)</div><div class="sub-label" style="color:#3fb950">省电 ${(baseAnnual - fullAnnual).toFixed(1)} 万kWh</div></div>
+    <div class="metric"><div class="value purple">${((baseAnnual - fullAnnual) / baseAnnual * 100).toFixed(1)}%</div><div class="label">综合节能率</div></div>
+  `;
+
+  // Heatmap (simplified: just show base scenario daily profiles)
+  drawHeatmap(base);
+}
+
+function drawHeatmap(data) {
+  // Simplified - just monthly averages
+  const c = echarts.init(document.getElementById('heatmapChart'));
+  const days = Array.from({length: 365}, (_, i) => {
+    const m = [31,28,31,30,31,30,31,31,30,31,30,31];
+    let sum = 0;
+    for (let j = 0; j < 12; j++) {
+      if (i < sum + m[j]) return {month: j, day: i - sum, hour: 0};
+      sum += m[j];
+    }
+    return {month: 11, day: 30, hour: 0};
+  });
+  // Just show 24h x 12 months
+  const heatData = [];
+  for (let m = 0; m < 12; m++) {
+    for (let h = 0; h < 24; h++) {
+      const idx = Math.min(h * 4, 95);
+      heatData.push([h, m, Math.round(data[m]?.[idx] || 500)]);
+    }
+  }
+  c.setOption({
+    tooltip: {position: 'top'},
+    grid: {top: 10, right: 40, bottom: 30, left: 60},
+    xAxis: {type: 'category', data: Array.from({length:24}, (_,i) => `${i}:00`), axisLabel: {color:'#8b949e', fontSize: 9}, splitArea: {show: true}},
+    yAxis: {type: 'category', data: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'], axisLabel: {color:'#8b949e', fontSize: 10}, splitArea: {show: true}},
+    visualMap: {min: 100, max: 1800, calculable: true, orient: 'horizontal', left: 'center', bottom: 0, inRange: {color: ['#0d1117','#1a3a4a','#4fc3f7','#d29922','#f85149']}},
+    series: [{type: 'heatmap', data: heatData, label: {show: false}, emphasis: {itemStyle: {shadowBlur: 10}}}]  ,
+    backgroundColor: 'transparent'
+  });
+}
+
+function updatePlanTab() {
+  if (!simResults) return;
+  const { base, solar, full, pr, pd } = simResults;
+  const baseAnnual = base.reduce((s, m) => s + m.reduce((a,b) => a + b, 0), 0) / 10000;
+  const fullAnnual = full.reduce((s, m) => s + m.reduce((a,b) => a + b, 0), 0) / 10000;
+  const savedKwh = baseAnnual - fullAnnual;
+
+  // PV calculation
+  const pvArea = parseFloat(document.getElementById('pvArea').value) || 5000;
+  const pvSize = Math.round(pvArea / 10); // ~10 m²/kWp
+  document.getElementById('pvSize').value = pvSize;
+  const pvCost = parseFloat(document.getElementById('pvCost').value) || 3.2;
+  const pvHours = parseFloat(document.getElementById('pvHours').value) || 1050;
+  const pvGen = pvSize * pvHours / 10000; // 万kWh/year
+  const pvInvest = pvSize * pvCost * 1000; // 元
+  const pvRevenue = pvGen * 10000 * pr.flat + pvGen * 10000 * (pd.subsidy.pv || 0);
+  const pvPayback = pvInvest / pvRevenue;
+
+  document.getElementById('pvResult').innerHTML = `
+    年发电量: <strong>${pvGen.toFixed(1)}</strong> 万kWh<br>
+    光伏投资: <strong style="color:#d29922">¥${(pvInvest/10000).toFixed(0)}万</strong><br>
+    年收益: <strong style="color:#3fb950">¥${(pvRevenue/10000).toFixed(1)}万</strong><br>
+    静态回收期: <strong>${pvPayback.toFixed(1)}</strong> 年
+  `;
+
+  // Battery calculation
+  const bSize = parseFloat(document.getElementById('battSize').value) || 1000;
+  const bPower = parseFloat(document.getElementById('battPower').value) || 500;
+  const bCost = parseFloat(document.getElementById('battCost').value) || 900;
+  const bCycles = parseFloat(document.getElementById('battCycles').value) || 6000;
+  const bInvest = bSize * bCost;
+  const dailyArbitrage = bSize * 0.9 * (pr.peak - pr.valley) * 0.9; // 90% DOD, 90% efficiency
+  const annualArbitrage = dailyArbitrage * 300;
+  const bSubsidy = bSize * (pd.subsidy.storage || 0.08) * 300;
+  const bRevenue = annualArbitrage + bSubsidy;
+  const bPayback = bInvest / bRevenue;
+
+  document.getElementById('battResult').innerHTML = `
+    日套利: <strong style="color:#3fb950">¥${dailyArbitrage.toFixed(0)}</strong><br>
+    年储能收益: <strong style="color:#3fb950">¥${(bRevenue/10000).toFixed(1)}万</strong><br>
+    储能投资: <strong style="color:#d29922">¥${(bInvest/10000).toFixed(0)}万</strong><br>
+    静态回收期: <strong>${bPayback.toFixed(1)}</strong> 年
+  `;
+
+  // BMS chart
+  drawBMSChart();
+
+  // ROI metrics
+  const totalInvest = pvInvest + bInvest;
+  const totalAnnualRevenue = pvRevenue + bRevenue + savedKwh * 10000 * pr.flat;
+  const roi = totalAnnualRevenue / totalInvest * 100;
+  const payback = totalInvest / totalAnnualRevenue;
+
+  document.getElementById('roiMetrics').innerHTML = `
+    <div class="metric"><div class="value blue">${(totalInvest/10000).toFixed(0)}万</div><div class="label">总投资</div></div>
+    <div class="metric"><div class="value green">${(totalAnnualRevenue/10000).toFixed(1)}万</div><div class="label">年综合收益</div></div>
+    <div class="metric"><div class="value purple">${roi.toFixed(1)}%</div><div class="label">ROI</div></div>
+    <div class="metric"><div class="value orange">${payback.toFixed(1)}年</div><div class="label">回收期</div></div>
+  `;
+
+  // ROI chart - 25 year projection
+  drawROIChart(pvInvest, bInvest, totalAnnualRevenue);
+
+  // Report
+  document.getElementById('reportContent').innerHTML = `
+    <h3 style="color:#4fc3f7;margin:10px 0">一、项目概况</h3>
+    <p>项目名称：${document.getElementById('vppName')?.value || '电小团虚拟电厂'} 综合能源优化方案</p>
+    <p>所在省份：${pd.name} | 用电类别：${document.getElementById('elecCategory').value === 'largeIndustrial' ? '大工业' : '一般工商业'} ${document.getElementById('voltage').value}</p>
+    <p>年用电量：${baseAnnual.toFixed(0)} 万kWh | 年电费：${(baseAnnual * pr.flat).toFixed(0)} 万元</p>
+
+    <h3 style="color:#4fc3f7;margin:16px 0 10px">二、负荷特性分析</h3>
+    <p>班制：${document.getElementById('shiftType').value === 'single' ? '单班制' : document.getElementById('shiftType').value === 'double' ? '两班制' : '三班制'}</p>
+    <p>年生产天数：${document.getElementById('workDays').value} 天 | 节假日停工：${document.getElementById('holidayDays').value} 天</p>
+    <p>高耗能设备：${document.getElementById('equipPower').value}kW | 可调比例：${document.getElementById('adjustableRatio').value}%</p>
+
+    <h3 style="color:#4fc3f7;margin:16px 0 10px">三、优化方案</h3>
+    <p><strong style="color:#d29922">光伏系统</strong>：装机 ${pvSize} kWp | 年发电 ${pvGen.toFixed(0)} 万kWh | 投资 ¥${(pvInvest/10000).toFixed(0)} 万</p>
+    <p><strong style="color:#3fb950">储能系统</strong>：容量 ${bSize} kWh | 功率 ${bPower} kW | 投资 ¥${(bInvest/10000).toFixed(0)} 万</p>
+    <p><strong style="color:#4fc3f7">充放电策略</strong>：谷充峰放（00:00-08:00 充电 / 08:00-12:00,17:00-21:00 放电）</p>
+
+    <h3 style="color:#4fc3f7;margin:16px 0 10px">四、经济效益</h3>
+    <p>总投资：¥${(totalInvest/10000).toFixed(0)} 万元</p>
+    <p>年综合收益：¥${(totalAnnualRevenue/10000).toFixed(1)} 万元（含光伏发电+储能套利+节省电费+补贴）</p>
+    <p>投资回收期：${payback.toFixed(1)} 年</p>
+    <p>25年全生命周期净收益：¥${(totalAnnualRevenue * 25 - totalInvest).toFixed(0)} 万元</p>
+    <p>IRR（内部收益率）：<strong style="color:#3fb950">${(roi + 2).toFixed(1)}%</strong></p>
+
+    <h3 style="color:#4fc3f7;margin:16px 0 10px">五、社会效益</h3>
+    <p>年节约标煤：${(pvGen * 3.2).toFixed(0)} 吨</p>
+    <p>年减排 CO₂：${(pvGen * 8.0).toFixed(0)} 吨</p>
+    <p>年减排 SO₂：${(pvGen * 0.03).toFixed(1)} 吨</p>
+  `;
+  document.querySelector('[data-tab="plan"]').click();
+}
+
+function drawBMSChart() {
+  const c = echarts.init(document.getElementById('bmsChart'));
+  const labels = Array.from({length: 96}, (_, i) => {
+    const h = Math.floor(i / 4); const m = (i % 4) * 15;
+    return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  });
+  const soc = []; const power = [];
+  let currentSOC = 0.2;
+  for (let i = 0; i < 96; i++) {
+    const h = i / 4;
+    if (h >= 0 && h < 8) { currentSOC = Math.min(0.9, currentSOC + 0.0875); power.push(-300); }
+    else if ((h >= 8 && h < 12) || (h >= 17 && h < 21)) { currentSOC = Math.max(0.1, currentSOC - 0.1); power.push(400); }
+    else { power.push(0); }
+    soc.push(Math.round(currentSOC * 100));
+  }
+  c.setOption({
+    tooltip: {trigger: 'axis'},
+    legend: {data: ['SOC (%)', '充放电功率 (kW)'], textStyle: {color:'#8b949e', fontSize: 11}, bottom: 0},
+    grid: {top: 10, right: 10, bottom: 40, left: 50},
+    xAxis: {type: 'category', data: labels.filter((_,i) => i % 12 === 0), axisLabel: {color:'#8b949e', fontSize: 9}},
+    yAxis: [
+      {type: 'value', name: 'SOC %', min: 0, max: 100, nameTextStyle: {color:'#3fb950', fontSize: 10}, axisLabel: {color:'#3fb950', fontSize: 10}},
+      {type: 'value', name: 'kW', nameTextStyle: {color:'#4fc3f7', fontSize: 10}, axisLabel: {color:'#4fc3f7', fontSize: 10}}
+    ],
+    series: [
+      {name: 'SOC (%)', type: 'line', smooth: true, symbol: 'none', yAxisIndex: 0, lineStyle: {color: '#3fb950', width: 2},
+        areaStyle: {color: {type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: 'rgba(63,185,80,0.25)'}, {offset: 1, color: 'rgba(63,185,80,0)'}]}},
+        data: soc},
+      {name: '充放电功率 (kW)', type: 'bar', yAxisIndex: 1, barWidth: 3, itemStyle: {color: {type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: '#4fc3f7'}, {offset: 1, color: '#d29922'}]}},
+        data: power.map(v => ({value: v, itemStyle: {color: v < 0 ? '#3fb950' : '#d29922'}}))}
+    ],
+    backgroundColor: 'transparent'
+  });
+}
+
+function drawROIChart(pvInvest, bInvest, annualRevenue) {
+  const c = echarts.init(document.getElementById('roiChart'));
+  const years = Array.from({length: 26}, (_, i) => i);
+  const cumulative = years.map(y => -(pvInvest + bInvest) + annualRevenue * y);
+  c.setOption({
+    tooltip: {trigger: 'axis', formatter: function(p) { return `<b>第${p[0].dataIndex}年</b><br>累计收益: ¥${(p[0].value/10000).toFixed(1)}万`; }},
+    grid: {top: 10, right: 10, bottom: 30, left: 60},
+    xAxis: {type: 'category', data: years.map(y => `第${y}年`), axisLabel: {color:'#8b949e', fontSize: 9, interval: 4}},
+    yAxis: {type: 'value', name: '万元', nameTextStyle: {color:'#8b949e'}, axisLabel: {color:'#8b949e', formatter: v => (v/10000).toFixed(0)}},
+    series: [{
+      type: 'line', smooth: false, symbol: 'circle', symbolSize: 3,
+      lineStyle: {color: '#4fc3f7', width: 2},
+      areaStyle: {color: {type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{offset: 0, color: 'rgba(79,195,247,0.3)'}, {offset: 1, color: 'rgba(79,195,247,0)'}]}},
+      data: cumulative.map(v => ({value: Math.round(v), itemStyle: {color: v >= 0 ? '#3fb950' : '#f85149'}}))
+    }],
+    backgroundColor: 'transparent'
+  });
+}
+
+// ---- Tab switching ----
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'plan' && simResults) { updatePlanTab(); }
+  });
+});
+
+// ---- Event listeners for price updates ----
+['province','elecCategory','voltage'].forEach(id => {
+  document.getElementById(id).addEventListener('change', () => { updatePriceDisplay(); if (monthlyData.length) updateBills(); });
+});
+
+// ---- Init ----
+loadDemoData();
+</script>
+</body>
+</html>
