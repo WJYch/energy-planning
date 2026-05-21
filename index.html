@@ -430,16 +430,27 @@ function selectScenario(s) {
 
 // ---- Simulation ----
 function runSimulation() {
-  document.getElementById('simStatus').textContent = '计算中...';
+  const st = document.getElementById('simStatus');
+  if (st) st.textContent = '计算中...';
   setTimeout(() => {
     simulateAll();
-    document.getElementById('simStatus').textContent = '✅ 模拟完成';
+    // 延迟渲染图表，确保 tab 切换后容器可见
     document.querySelector('[data-tab="sim"]').click();
-    setTimeout(() => document.getElementById('simChart').scrollIntoView({behavior:'smooth'}), 100);
+    setTimeout(() => {
+      if (simResults) displaySimResults();
+      const st2 = document.getElementById('simStatus');
+      if (st2) st2.textContent = '✅ 模拟完成';
+      const sc = document.getElementById('simChart');
+      if (sc) sc.scrollIntoView({behavior:'smooth'});
+    }, 300);
   }, 200);
 }
 
 function simulateAll() {
+  if (!monthlyData || monthlyData.length === 0) {
+    alert('请先在「数据录入」页面加载示例数据');
+    return;
+  }
   const prov = document.getElementById('province').value;
   const pd = PROVINCE_DATA[prov];
   const cat = document.getElementById('elecCategory').value;
