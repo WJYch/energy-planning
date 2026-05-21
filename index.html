@@ -561,7 +561,7 @@ function applyStorageStrategy(monthLoad, cap, pow, pr) {
 }
 
 function displaySimResults() {
-  const { base, solar, full } = simResults;
+  const { base, solar, full, pvGen, pr, pd } = simResults;
   const dayIdx = 5; // typical summer day
   const labels = Array.from({length: 96}, (_, i) => {
     const h = Math.floor(i / 4); const m = (i % 4) * 15;
