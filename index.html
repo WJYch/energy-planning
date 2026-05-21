@@ -29,7 +29,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 .grid-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px}
-@media(max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr}}
+@media(max-width:768px){.grid-3,.grid-4{grid-template-columns:1fr}}
 .metric{padding:16px;background:#0d1117;border-radius:8px;text-align:center;position:relative}
 .metric .value{font-size:24px;font-weight:700}
 .metric .value.blue{color:#4fc3f7}
@@ -824,6 +825,15 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 // ---- Init ----
 loadDemoData();
+
+// Auto-resize echarts instances when container changes size (e.g. HA iframe)
+const chartObserver = new ResizeObserver(entries => {
+  entries.forEach(entry => {
+    const instance = echarts.getInstanceByDom(entry.target);
+    if (instance) instance.resize();
+  });
+});
+document.querySelectorAll('.chart-box, .chart-box-sm, .chart-box-lg').forEach(el => chartObserver.observe(el));
 </script>
 </body>
 </html>
